@@ -32,6 +32,12 @@ def check_cookies_file(cookie_file):
             return False
         with open(cookie_file, 'r', encoding='utf-8') as f:
             lines = f.readlines()
+            if not lines:
+                logger.warning(f"Файл cookies {cookie_file} пуст.")
+                return False
+            if not (lines[0].startswith('# Netscape HTTP Cookie File') or lines[0].startswith('# HTTP Cookie File')):
+                logger.warning(f"Неверный формат заголовка в файле cookies {cookie_file}.")
+                return False
             for line in lines:
                 if line.strip() and not line.startswith('#'):
                     fields = line.strip().split('\t')
@@ -84,7 +90,7 @@ async def download_video(url, chat_id, format_id=None):
             'merge_output_format': 'mp4',
             'quiet': True,
             'no_warnings': True,
-            'cookiefile': COOKIE_FILE if os.path.exists(COOKIE_FILE) else None,
+            'cookiefile': COOKIE_FILE if check_cookies_file(COOKIE_FILE) else None,
             'retries': 5,
         }
 
@@ -130,9 +136,12 @@ async def download_video(url, chat_id, format_id=None):
             current_download.pop(chat_id, None)
 
     except yt_dlp.DownloadError as e:
-        await bot.send_message(chat_id, f"Ошибка загрузки: {str(e)}. Проверьте cookies или региональные ограничения.")
+        error_msg = str(e)
+        await bot.send_message(chat_id, f"Ошибка загрузки: {error_msg}. Проверьте cookies или региональные ограничения.")
+        logger.error(f"Download error: {error_msg}")
     except Exception as e:
         await bot.send_message(chat_id, f"Неожиданная ошибка: {str(e)}")
+        logger.error(f"Unexpected error: {str(e)}")
 
 @dp.message(Command("start"))
 async def cmd_start(message: Message):
