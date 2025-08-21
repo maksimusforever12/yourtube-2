@@ -1,3 +1,4 @@
 yt-dlp==2025.08.20
 tqdm>=4.66.3
 PySocks>=1.7.1
+aiogram>=3.6.0
