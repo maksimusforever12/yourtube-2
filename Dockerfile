@@ -1,6 +1,6 @@
 FROM python:3.11-slim
 
-# Установка FFmpeg
+# Установка FFmpeg и зависимостей
 RUN apt-get update && apt-get install -y ffmpeg && apt-get clean
 
 # Установка зависимостей Python
